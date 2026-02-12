@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic To-Do WebApp</title>
+
+    <style>
+        body {
+            background: #0d1117;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+
+        .container {
+            width: 500px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #161b22;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #000;
+        }
+
+        h1, h2 {
+            color: #ffd43b;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #ffd43b;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #e6c000;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task {
+            background: #21262d;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task span {
+            flex: 1;
+        }
+
+        .task small {
+            color: #aaa;
+            display: block;
+        }
+
+        .controls button {
+            margin-left: 5px;
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>My To-Do App</h1>
+
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Enter a new task">
+            <button onclick="addTask()">Add</button>
+        </div>
+
+        <h2>Pending Tasks</h2>
+        <ul id="pendingList" class="task-list"></ul>
+
+        <h2>Completed Tasks</h2>
+        <ul id="completedList" class="task-list"></ul>
+    </div>
+
+    <script>
+        let pendingTasks = JSON.parse(localStorage.getItem("pendingTasks")) || [];
+        let completedTasks = JSON.parse(localStorage.getItem("completedTasks")) || [];
+
+        function saveData() {
+            localStorage.setItem("pendingTasks", JSON.stringify(pendingTasks));
+            localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+        }
+
+        function addTask() {
+            const input = document.getElementById("taskInput");
+            if (input.value.trim() === "") return alert("Enter a task!");
+
+            const task = {
+                text: input.value,
+                added: new Date().toLocaleString()
+            };
+
+            pendingTasks.push(task);
+            input.value = "";
+            saveData();
+            render();
+        }
+
+        function deleteTask(index, isCompleted) {
+            if (isCompleted) completedTasks.splice(index, 1);
+            else pendingTasks.splice(index, 1);
+
+            saveData();
+            render();
+        }
+
+        function editTask(index) {
+            const newText = prompt("Edit task:", pendingTasks[index].text);
+            if (!newText) return;
+
+            pendingTasks[index].text = newText;
+            saveData();
+            render();
+        }
+
+        function completeTask(index) {
+            const task = pendingTasks.splice(index, 1)[0];
+            task.completed = new Date().toLocaleString();
+            completedTasks.push(task);
+
+            saveData();
+            render();
+        }
+
+        function render() {
+            const pendingList = document.getElementById("pendingList");
+            const completedList = document.getElementById("completedList");
+
+            pendingList.innerHTML = "";
+            completedList.innerHTML = "";
+
+            pendingTasks.forEach((task, index) => {
+                pendingList.innerHTML += `
+                    <li class="task">
+                        <span>
+                            ${task.text}
+                            <small>Added: ${task.added}</small>
+                        </span>
+                        <div class="controls">
+                            <button onclick="editTask(${index})">Edit</button>
+                            <button onclick="completeTask(${index})">Complete</button>
+                            <button onclick="deleteTask(${index}, false)">Delete</button>
+                        </div>
+                    </li>
+                `;
+            });
+
+            completedTasks.forEach((task, index) => {
+                completedList.innerHTML += `
+                    <li class="task">
+                        <span>
+                            ${task.text}
+                            <small>Added: ${task.added}</small>
+                            <small>Completed: ${task.completed}</small>
+                        </span>
+                        <div class="controls">
+                            <button onclick="deleteTask(${index}, true)">Delete</button>
+                        </div>
+                    </li>
+                `;
+            });
+        }
+
+        render();
+    </script>
+
+</body>
+</html>
